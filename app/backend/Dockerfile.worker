@@ -1,0 +1,24 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Копируем requirements и устанавливаем зависимости
+COPY ./requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Копируем исходный код
+COPY ./src ./app/backend/src
+COPY ./alembic ./app/backend/alembic
+COPY ./alembic.ini ./app/backend/alembic.ini
+
+# Устанавливаем PYTHONPATH
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# Запускаем Celery worker
+CMD ["celery", "-A", "app.backend.src.tasks.celery_app", "worker", "--loglevel=info", "--concurrency=2"]
+
+
+
+
+

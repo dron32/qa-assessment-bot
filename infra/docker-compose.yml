@@ -1,0 +1,88 @@
+services:
+  api:
+    build:
+      context: ../app/backend
+      dockerfile: Dockerfile
+    container_name: qa-assessment-api
+    env_file:
+      - ../.env
+    ports:
+      - "${API_PORT-8000}:8000"
+    depends_on:
+      - db
+      - redis
+
+  worker:
+    build:
+      context: ../app/backend
+      dockerfile: Dockerfile.worker
+    container_name: qa-assessment-worker
+    env_file:
+      - ../.env
+    depends_on:
+      - db
+      - redis
+
+  admin:
+    build:
+      context: ../app/frontend-admin
+      dockerfile: Dockerfile
+    container_name: qa-assessment-admin
+    env_file:
+      - ../.env
+    ports:
+      - "${ADMIN_PORT-5173}:5173"
+    depends_on:
+      - api
+
+  db:
+    image: postgres:16
+    container_name: qa-assessment-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD-postgres}
+      POSTGRES_DB: ${POSTGRES_DB-qa_assessment}
+    ports:
+      - "${POSTGRES_PORT-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: qa-assessment-redis
+    ports:
+      - "${REDIS_PORT-6379}:6379"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: qa-assessment-prometheus
+    ports:
+      - "${PROMETHEUS_PORT-9090}:9090"
+    volumes:
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: qa-assessment-grafana
+    ports:
+      - "${GRAFANA_PORT-3000}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+volumes:
+  pgdata:
+  prometheus_data:
+  grafana_data:
+
+
+
+

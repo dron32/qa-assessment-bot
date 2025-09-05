@@ -1,0 +1,70 @@
+{
+  "nav": {
+    "competencies": "Competencies",
+    "templates": "Templates",
+    "cycles": "Review Cycles",
+    "users": "Users",
+    "audit": "Audit"
+  },
+  "common": {
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "search": "Search",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "login": {
+    "title": "QA Assessment Admin",
+    "subtitle": "Sign in to your account",
+    "signIn": "Sign In",
+    "email": "Email",
+    "password": "Password"
+  },
+  "competencies": {
+    "title": "Competencies",
+    "create": "Create Competency",
+    "edit": "Edit Competency",
+    "key": "Key",
+    "title": "Title",
+    "description": "Description",
+    "active": "Active"
+  },
+  "templates": {
+    "title": "Templates",
+    "create": "Create Template",
+    "edit": "Edit Template",
+    "competency": "Competency",
+    "language": "Language",
+    "content": "Content",
+    "version": "Version"
+  },
+  "cycles": {
+    "title": "Review Cycles",
+    "create": "Create Cycle",
+    "edit": "Edit Cycle",
+    "title": "Title",
+    "startsAt": "Starts At",
+    "endsAt": "Ends At",
+    "status": "Status"
+  },
+  "users": {
+    "title": "Users",
+    "create": "Create User",
+    "edit": "Edit User",
+    "handle": "Handle",
+    "email": "Email",
+    "role": "Role",
+    "platform": "Platform"
+  },
+  "audit": {
+    "title": "Audit Logs",
+    "user": "User",
+    "action": "Action",
+    "timestamp": "Timestamp",
+    "details": "Details"
+  }
+}
