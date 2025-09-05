@@ -14,7 +14,7 @@ from ..llm.client import LlmClient
 logger = logging.getLogger(__name__)
 
 # FastAPI router для вебхуков
-router = APIRouter(prefix="/bot/telegram")
+router = APIRouter(prefix="/telegram")
 
 # Глобальная переменная для приложения (в продакшене - DI)
 tg_app: Application | None = None

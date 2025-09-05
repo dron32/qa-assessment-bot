@@ -90,12 +90,12 @@ def create_app() -> FastAPI:
     async def healthcheck() -> dict[str, str]:
         """Health check endpoint."""
         logger.info("healthcheck_requested", action="healthcheck")
-        return {"status": "ok", "service": "qa-assessment-api"}
+        return {"status": "ok"}
 
     @app.get("/metrics")
     async def metrics():
         """Prometheus metrics endpoint."""
-        await update_system_metrics()
+        update_system_metrics()
         return get_metrics()
     
     @app.get("/cache/stats")

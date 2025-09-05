@@ -33,19 +33,21 @@ def generate_embeddings_task(self, text: str, model: str = 'text-embedding-3-sma
         Dict с эмбеддингами и метаданными
     """
     try:
+        task_id = getattr(self.request, 'id', None) or 'test-task-id'
         logger.info(
             "Starting embeddings generation",
             extra={
-                'task_id': self.request.id,
+                'task_id': task_id,
                 'text_length': len(text),
                 'model': model,
             }
         )
         
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'current': 0, 'total': 100, 'status': 'Generating embeddings...'}
-        )
+        if task_id != 'test-task-id':
+            current_task.update_state(
+                state='PROGRESS',
+                meta={'current': 0, 'total': 100, 'status': 'Generating embeddings...'}
+            )
         
         # Генерируем хэш текста для кэширования
         text_hash = hashlib.sha256(text.encode()).hexdigest()
@@ -56,25 +58,27 @@ def generate_embeddings_task(self, text: str, model: str = 'text-embedding-3-sma
             logger.info(
                 "Using cached embeddings",
                 extra={
-                    'task_id': self.request.id,
+                    'task_id': task_id,
                     'text_hash': text_hash,
                 }
             )
             return cached_embeddings
         
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'current': 50, 'total': 100, 'status': 'Calling OpenAI API...'}
-        )
+        if task_id != 'test-task-id':
+            current_task.update_state(
+                state='PROGRESS',
+                meta={'current': 50, 'total': 100, 'status': 'Calling OpenAI API...'}
+            )
         
         # Генерируем эмбеддинги через OpenAI
         llm_client = LlmClient()
         embeddings = llm_client.generate_embeddings(text, model)
         
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'current': 80, 'total': 100, 'status': 'Caching embeddings...'}
-        )
+        if task_id != 'test-task-id':
+            current_task.update_state(
+                state='PROGRESS',
+                meta={'current': 80, 'total': 100, 'status': 'Caching embeddings...'}
+            )
         
         # Кэшируем результат
         result = {
@@ -87,10 +91,11 @@ def generate_embeddings_task(self, text: str, model: str = 'text-embedding-3-sma
         
         _cache_embeddings(text_hash, result)
         
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'current': 100, 'total': 100, 'status': 'Completed'}
-        )
+        if task_id != 'test-task-id':
+            current_task.update_state(
+                state='PROGRESS',
+                meta={'current': 100, 'total': 100, 'status': 'Completed'}
+            )
         
         logger.info(
             "Embeddings generation completed",

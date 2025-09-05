@@ -5,21 +5,7 @@ import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Plus, Edit, Trash2 } from 'lucide-react'
-
-interface Competency {
-  id: number
-  key: string
-  title: string
-  description?: string
-  is_active: boolean
-}
-
-// Заглушка API
-const mockCompetencies: Competency[] = [
-  { id: 1, key: 'analytical_thinking', title: 'Аналитическое мышление', description: 'Способность анализировать проблемы', is_active: true },
-  { id: 2, key: 'bug_reports', title: 'Качество баг-репортов', description: 'Навыки написания качественных баг-репортов', is_active: true },
-  { id: 3, key: 'documentation', title: 'Работа с документацией', description: 'Умение работать с тестовой документацией', is_active: true },
-]
+import { competenciesApi, type Competency } from '../lib/api'
 
 export default function Competencies() {
   const { t } = useTranslation()
@@ -28,31 +14,46 @@ export default function Competencies() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [formData, setFormData] = useState({ key: '', title: '', description: '' })
 
-  const { data: competencies = [], isLoading } = useQuery({
+  const { data: competenciesData, isLoading } = useQuery({
     queryKey: ['competencies'],
-    queryFn: () => Promise.resolve(mockCompetencies),
+    queryFn: competenciesApi.getAll,
   })
 
+  const competencies = competenciesData?.competencies || []
+
   const createMutation = useMutation({
-    mutationFn: (data: Omit<Competency, 'id'>) => Promise.resolve({ id: Date.now(), ...data, is_active: true }),
-    onSuccess: () => {
+    mutationFn: (data: { key: string; title: string; description?: string }) => {
+      console.log('Creating competency with data:', data)
+      return competenciesApi.create(data)
+    },
+    onSuccess: (result) => {
+      console.log('Competency created successfully:', result)
       queryClient.invalidateQueries({ queryKey: ['competencies'] })
       setIsCreating(false)
       setFormData({ key: '', title: '', description: '' })
     },
+    onError: (error) => {
+      console.error('Failed to create competency:', error)
+      alert(`Ошибка создания компетенции: ${error.message}`)
+    },
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, ...data }: Competency) => Promise.resolve({ id, ...data }),
+    mutationFn: ({ id, ...data }: { id: number; key: string; title: string; description?: string }) => 
+      competenciesApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['competencies'] })
       setEditingId(null)
       setFormData({ key: '', title: '', description: '' })
     },
+    onError: (error) => {
+      console.error('Failed to update competency:', error)
+      alert(`Ошибка обновления компетенции: ${error.message}`)
+    },
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => Promise.resolve(id),
+    mutationFn: (id: number) => competenciesApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['competencies'] })
     },
@@ -60,20 +61,29 @@ export default function Competencies() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('Form submitted:', { editingId, formData })
+    
+    // Проверяем валидность формы
+    if (!formData.key.trim() || !formData.title.trim()) {
+      console.error('Form validation failed: missing required fields')
+      alert('Пожалуйста, заполните все обязательные поля')
+      return
+    }
+    
     if (editingId) {
+      console.log('Updating competency:', editingId)
       updateMutation.mutate({
         id: editingId,
         key: formData.key,
         title: formData.title,
         description: formData.description,
-        is_active: true,
       })
     } else {
+      console.log('Creating new competency')
       createMutation.mutate({
         key: formData.key,
         title: formData.title,
         description: formData.description,
-        is_active: true,
       })
     }
   }
@@ -108,7 +118,12 @@ export default function Competencies() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.ctrlKey) {
+                console.log('Ctrl+Enter pressed')
+                handleSubmit(e)
+              }
+            }}>
               <div>
                 <label className="block text-sm font-medium mb-1">{t('competencies.key')}</label>
                 <Input
@@ -136,8 +151,22 @@ export default function Competencies() {
                 />
               </div>
               <div className="flex gap-2">
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                <Button 
+                  type="submit" 
+                  disabled={createMutation.isPending || updateMutation.isPending}
+                  onClick={() => console.log('Save button clicked')}
+                >
                   {t('common.save')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    console.log('Test button clicked')
+                    handleSubmit(new Event('submit') as any)
+                  }}
+                >
+                  Test Save
                 </Button>
                 <Button
                   type="button"

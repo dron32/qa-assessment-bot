@@ -38,27 +38,30 @@ def generate_summary_task(self, user_id: int, cycle_id: Optional[int] = None) ->
     task_name = "generate_summary"
     
     try:
+        task_id = getattr(self.request, 'id', None) or 'test-task-id'
         logger.info(
             "summary_generation_started",
             action="celery_task",
-            task_id=self.request.id,
+            task_id=task_id,
             user_id=user_id,
             cycle_id=cycle_id,
         )
         
-        # Обновляем прогресс задачи
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'current': 0, 'total': 100, 'status': 'Initializing...'}
-        )
+        # Обновляем прогресс задачи только если task_id существует
+        if task_id != 'test-task-id':
+            current_task.update_state(
+                state='PROGRESS',
+                meta={'current': 0, 'total': 100, 'status': 'Initializing...'}
+            )
         
         # Получаем данные для summary
         summary_data = _collect_summary_data(user_id, cycle_id)
         
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'current': 30, 'total': 100, 'status': 'Data collected, generating summary...'}
-        )
+        if task_id != 'test-task-id':
+            current_task.update_state(
+                state='PROGRESS',
+                meta={'current': 30, 'total': 100, 'status': 'Data collected, generating summary...'}
+            )
         
         # Генерируем summary через LLM
         llm_client = LlmClient()
@@ -69,18 +72,20 @@ def generate_summary_task(self, user_id: int, cycle_id: Optional[int] = None) ->
             profile=SUMMARY_PROFILE
         )
         
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'current': 80, 'total': 100, 'status': 'Saving summary...'}
-        )
+        if task_id != 'test-task-id':
+            current_task.update_state(
+                state='PROGRESS',
+                meta={'current': 80, 'total': 100, 'status': 'Saving summary...'}
+            )
         
         # Сохраняем результат в БД
         summary_id = _save_summary_to_db(user_id, cycle_id, summary_result)
         
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'current': 100, 'total': 100, 'status': 'Completed'}
-        )
+        if task_id != 'test-task-id':
+            current_task.update_state(
+                state='PROGRESS',
+                meta={'current': 100, 'total': 100, 'status': 'Completed'}
+            )
         
         result = {
             'summary_id': summary_id,

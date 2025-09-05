@@ -7,7 +7,9 @@ from typing import Any, Dict, Optional
 
 class ReviewState(Enum):
     IDLE = "idle"
+    START = "start"
     SELECTING_CYCLE = "selecting_cycle"
+    COLLECTING_ANSWERS = "collecting_answers"
     ANSWERING_COMPETENCIES = "answering_competencies"
     PREVIEW = "preview"
     REFINING = "refining"

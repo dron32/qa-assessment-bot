@@ -5,20 +5,7 @@ import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Plus, Edit, Trash2 } from 'lucide-react'
-
-interface ReviewCycle {
-  id: number
-  title: string
-  starts_at?: string
-  ends_at?: string
-  status?: string
-}
-
-// Заглушка API
-const mockCycles: ReviewCycle[] = [
-  { id: 1, title: 'Q4 2024 Review', starts_at: '2024-10-01', ends_at: '2024-12-31', status: 'active' },
-  { id: 2, title: 'Q1 2025 Review', starts_at: '2025-01-01', ends_at: '2025-03-31', status: 'planned' },
-]
+import { reviewCyclesApi, type ReviewCycle } from '../lib/api'
 
 export default function ReviewCycles() {
   const { t } = useTranslation()
@@ -27,52 +14,73 @@ export default function ReviewCycles() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [formData, setFormData] = useState({ title: '', starts_at: '', ends_at: '', status: 'planned' })
 
-  const { data: cycles = [], isLoading } = useQuery({
+  const { data: cyclesData, isLoading } = useQuery({
     queryKey: ['cycles'],
-    queryFn: () => Promise.resolve(mockCycles),
+    queryFn: reviewCyclesApi.getAll,
   })
 
+  const cycles = cyclesData?.cycles || []
+
   const createMutation = useMutation({
-    mutationFn: (data: Omit<ReviewCycle, 'id'>) => Promise.resolve({ id: Date.now(), ...data }),
+    mutationFn: (data: { title: string; start_date?: string; end_date?: string }) => 
+      reviewCyclesApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cycles'] })
       setIsCreating(false)
       setFormData({ title: '', starts_at: '', ends_at: '', status: 'planned' })
     },
+    onError: (error) => {
+      console.error('Failed to create review cycle:', error)
+      alert(`Ошибка создания цикла ревью: ${error.message}`)
+    },
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, ...data }: ReviewCycle) => Promise.resolve({ id, ...data }),
+    mutationFn: ({ id, ...data }: { id: number; title: string; start_date?: string; end_date?: string }) => 
+      reviewCyclesApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cycles'] })
       setEditingId(null)
       setFormData({ title: '', starts_at: '', ends_at: '', status: 'planned' })
     },
+    onError: (error) => {
+      console.error('Failed to update review cycle:', error)
+      alert(`Ошибка обновления цикла ревью: ${error.message}`)
+    },
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => Promise.resolve(id),
+    mutationFn: (id: number) => reviewCyclesApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cycles'] })
+    },
+    onError: (error) => {
+      console.error('Failed to delete review cycle:', error)
+      alert(`Ошибка удаления цикла ревью: ${error.message}`)
     },
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Проверяем валидность формы
+    if (!formData.title.trim()) {
+      alert('Пожалуйста, заполните название цикла ревью')
+      return
+    }
+    
     if (editingId) {
       updateMutation.mutate({
         id: editingId,
         title: formData.title,
-        starts_at: formData.starts_at || undefined,
-        ends_at: formData.ends_at || undefined,
-        status: formData.status,
+        start_date: formData.starts_at || undefined,
+        end_date: formData.ends_at || undefined,
       })
     } else {
       createMutation.mutate({
         title: formData.title,
-        starts_at: formData.starts_at || undefined,
-        ends_at: formData.ends_at || undefined,
-        status: formData.status,
+        start_date: formData.starts_at || undefined,
+        end_date: formData.ends_at || undefined,
       })
     }
   }
@@ -81,9 +89,9 @@ export default function ReviewCycles() {
     setEditingId(cycle.id)
     setFormData({
       title: cycle.title,
-      starts_at: cycle.starts_at || '',
-      ends_at: cycle.ends_at || '',
-      status: cycle.status || 'planned',
+      starts_at: cycle.start_date || '',
+      ends_at: cycle.end_date || '',
+      status: 'planned', // Убираем status, так как его нет в API
     })
   }
 
@@ -136,18 +144,6 @@ export default function ReviewCycles() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">{t('cycles.status')}</label>
-                <select
-                  className="w-full p-2 border rounded-md"
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                >
-                  <option value="planned">Planned</option>
-                  <option value="active">Active</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
               <div className="flex gap-2">
                 <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                   {t('common.save')}
@@ -178,17 +174,15 @@ export default function ReviewCycles() {
                 <div>
                   <h3 className="font-semibold">{cycle.title}</h3>
                   <p className="text-sm text-gray-500">
-                    {cycle.starts_at && cycle.ends_at 
-                      ? `${cycle.starts_at} - ${cycle.ends_at}`
+                    {cycle.start_date && cycle.end_date 
+                      ? `${cycle.start_date} - ${cycle.end_date}`
                       : 'Даты не указаны'
                     }
                   </p>
                   <span className={`inline-block px-2 py-1 text-xs rounded-full mt-1 ${
-                    cycle.status === 'active' ? 'bg-green-100 text-green-800' :
-                    cycle.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                    'bg-blue-100 text-blue-800'
+                    cycle.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                   }`}>
-                    {cycle.status}
+                    {cycle.is_active ? 'Активный' : 'Неактивный'}
                   </span>
                 </div>
                 <div className="flex gap-2">

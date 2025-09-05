@@ -15,7 +15,7 @@ from ..llm.client import LlmClient
 logger = logging.getLogger(__name__)
 
 # FastAPI router для вебхуков
-router = APIRouter(prefix="/bot/slack")
+router = APIRouter(prefix="/slack")
 
 # Slack Bolt app - инициализация только при наличии токенов
 def create_slack_app():

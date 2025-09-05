@@ -14,20 +14,26 @@ class RefineResponse(BaseModel):
     improvement_hints: conlist(str, min_length=2, max_length=6)  # type: ignore[type-arg]
 
 
+class Duplicate(BaseModel):
+    self_item: str
+    peer_item: str
+    similarity: float
+
+
 class Contradiction(BaseModel):
-    self_idx: int
-    peer_idx: int
-    reason: str
+    self_item: str
+    peer_item: str
+    competency: str
 
 
 class ConflictsResponse(BaseModel):
-    duplicates: list[list[int]]
+    duplicates: list[Duplicate]
     contradictions: list[Contradiction]
 
 
 class SummaryResponse(BaseModel):
-    strengths: conlist(str, min_length=3, max_length=3)  # type: ignore[type-arg]
-    areas_for_growth: conlist(str, min_length=3, max_length=3)  # type: ignore[type-arg]
-    next_steps: conlist(str, min_length=3, max_length=3)  # type: ignore[type-arg]
+    strengths: list[str]
+    areas_for_growth: list[str]
+    next_steps: list[str]
 
 

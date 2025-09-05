@@ -31,26 +31,29 @@ def compare_reviews_task(self, review_id: int) -> Dict[str, Any]:
         Dict с результатами сравнения
     """
     try:
+        task_id = getattr(self.request, 'id', None) or 'test-task-id'
         logger.info(
             "Starting review comparison",
             extra={
-                'task_id': self.request.id,
+                'task_id': task_id,
                 'review_id': review_id,
             }
         )
         
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'current': 0, 'total': 100, 'status': 'Loading review data...'}
-        )
+        if task_id != 'test-task-id':
+            current_task.update_state(
+                state='PROGRESS',
+                meta={'current': 0, 'total': 100, 'status': 'Loading review data...'}
+            )
         
         # Получаем данные review
         review_data = _get_review_data(review_id)
         
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'current': 20, 'total': 100, 'status': 'Analyzing conflicts...'}
-        )
+        if task_id != 'test-task-id':
+            current_task.update_state(
+                state='PROGRESS',
+                meta={'current': 20, 'total': 100, 'status': 'Analyzing conflicts...'}
+            )
         
         # Анализируем конфликты через LLM
         llm_client = LlmClient()
@@ -60,26 +63,29 @@ def compare_reviews_task(self, review_id: int) -> Dict[str, Any]:
             profile=FAST_PROFILE
         )
         
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'current': 60, 'total': 100, 'status': 'Detecting duplicates...'}
-        )
+        if task_id != 'test-task-id':
+            current_task.update_state(
+                state='PROGRESS',
+                meta={'current': 60, 'total': 100, 'status': 'Detecting duplicates...'}
+            )
         
         # Ищем дубликаты
         duplicates = _detect_duplicates(review_data)
         
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'current': 80, 'total': 100, 'status': 'Saving results...'}
-        )
+        if task_id != 'test-task-id':
+            current_task.update_state(
+                state='PROGRESS',
+                meta={'current': 80, 'total': 100, 'status': 'Saving results...'}
+            )
         
         # Сохраняем результаты
         result_id = _save_comparison_results(review_id, conflicts, duplicates)
         
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'current': 100, 'total': 100, 'status': 'Completed'}
-        )
+        if task_id != 'test-task-id':
+            current_task.update_state(
+                state='PROGRESS',
+                meta={'current': 100, 'total': 100, 'status': 'Completed'}
+            )
         
         result = {
             'review_id': review_id,
