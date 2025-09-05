@@ -162,16 +162,6 @@ export default function Competencies() {
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    console.log('Test button clicked')
-                    handleSubmit(new Event('submit') as any)
-                  }}
-                >
-                  Test Save
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
                     setIsCreating(false)
                     setEditingId(null)
                     setFormData({ key: '', title: '', description: '' })

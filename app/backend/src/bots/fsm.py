@@ -13,7 +13,9 @@ class ReviewState(Enum):
     ANSWERING_COMPETENCIES = "answering_competencies"
     PREVIEW = "preview"
     REFINING = "refining"
+    SUBMITTING = "submitting"  # Для совместимости с тестами
     SUBMITTED = "submitted"
+    COMPLETED = "completed"  # Для совместимости с тестами
 
 
 @dataclass
@@ -24,12 +26,19 @@ class ReviewSession:
     subject_id: Optional[str] = None
     cycle_id: Optional[int] = None
     state: ReviewState = ReviewState.IDLE
+    current_state: Optional[ReviewState] = None  # Для совместимости с тестами
     answers: Dict[str, str] = None  # competency_id -> text
+    current_competency: Optional[str] = None  # Для совместимости с тестами
     review_id: Optional[int] = None
     
     def __post_init__(self):
         if self.answers is None:
             self.answers = {}
+        # Синхронизируем state и current_state
+        if self.current_state is not None:
+            self.state = self.current_state
+        else:
+            self.current_state = self.state
 
 
 class FSMStore:

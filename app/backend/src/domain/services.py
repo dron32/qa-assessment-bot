@@ -413,3 +413,10 @@ class TemplateService:
                 updated_at=datetime.utcnow()
             )
         ]
+
+
+# Глобальные экземпляры сервисов для тестирования
+user_service = UserService()
+review_service = ReviewService()
+competency_service = CompetencyService()
+template_service = TemplateService()

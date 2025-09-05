@@ -2,6 +2,7 @@ import os
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.celery import CeleryIntegration
 
@@ -90,13 +91,13 @@ def create_app() -> FastAPI:
     async def healthcheck() -> dict[str, str]:
         """Health check endpoint."""
         logger.info("healthcheck_requested", action="healthcheck")
-        return {"status": "ok"}
+        return {"status": "ok", "service": "qa-assessment-api"}
 
     @app.get("/metrics")
     async def metrics():
         """Prometheus metrics endpoint."""
         update_system_metrics()
-        return get_metrics()
+        return PlainTextResponse(get_metrics(), media_type="text/plain")
     
     @app.get("/cache/stats")
     async def cache_stats():

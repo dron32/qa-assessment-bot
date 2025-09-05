@@ -163,7 +163,7 @@ class LlmClient:
             raw = self._complete_json(profile=FAST_PROFILE, system_prompt=PROMPT_REFINE, user_payload=payload, trace_id=trace_id, operation="refine")
         except Exception:
             raw = self._graceful_fallback(kind="refine")
-        return RefineResponse.model_validate_json(raw)
+        return RefineResponse.model_validate(raw)
 
     def detect_conflicts(self, *, self_items: list[str], peer_items: list[str], trace_id: str) -> ConflictsResponse:
         payload = {"self_items": self_items, "peer_items": peer_items}

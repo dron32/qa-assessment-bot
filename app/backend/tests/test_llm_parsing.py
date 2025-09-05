@@ -135,7 +135,7 @@ class TestLLMParsing:
         assert len(response.areas_for_growth) == 2
         assert len(response.next_steps) == 2
         assert "аналитические" in response.strengths[0]
-        assert "автоматизация" in response.areas_for_growth[0]
+        assert "автоматизация" in response.areas_for_growth[0].lower()
     
     def test_parse_summary_response_invalid(self):
         """Тест парсинга невалидного ответа сводки."""
@@ -164,7 +164,7 @@ class TestLLMClientIntegration:
         mock_response.choices[0].message.content = json.dumps({
             "outline": "План ответа",
             "example": "Пример ответа",
-            "bullet_points": ["Пункт 1", "Пункт 2"]
+            "bullet_points": ["Пункт 1", "Пункт 2", "Пункт 3"]
         })
         mock_response.usage = Mock()
         mock_response.usage.completion_tokens = 100

@@ -25,7 +25,9 @@ def test_admin_rbac_forbidden():
 
 def test_admin_ok():
     c = client()
-    r = c.post("/api/admin/competencies", headers={"X-User-Role": "admin"}, params={"key": "k1", "title": "t1"})
+    r = c.post("/api/admin/competencies", 
+               headers={"X-User-Id": "1", "X-User-Role": "admin", "Content-Type": "application/json"},
+               json={"key": "k1", "title": "t1", "description": "Test competency"})
     assert r.status_code == 200
     assert r.json()["key"] == "k1"
 

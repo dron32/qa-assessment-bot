@@ -6,6 +6,9 @@ from typing import List, Optional
 from ..core.auth import CurrentUser, get_current_user, require_admin
 from ..llm.client import LlmClient
 from ..tasks.integration import task_manager
+from ..domain.services import (
+    user_service, review_service, competency_service, template_service
+)
 from ..schemas.admin import (
     CompetencyCreate, CompetencyUpdate,
     TemplateCreate, TemplateUpdate,
@@ -20,6 +23,9 @@ from ..storage import (
 )
 
 router = APIRouter()
+
+# Глобальные экземпляры сервисов для тестирования
+llm_client = LlmClient()
 
 
 @router.post("/reviews/self/start")

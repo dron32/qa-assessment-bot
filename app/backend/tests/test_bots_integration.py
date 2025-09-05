@@ -232,12 +232,12 @@ class TestFSM:
     
     def test_review_state_enum(self):
         """Тест enum состояний ревью."""
-        assert ReviewState.START == "start"
-        assert ReviewState.COLLECTING_ANSWERS == "collecting_answers"
-        assert ReviewState.PREVIEW == "preview"
-        assert ReviewState.REFINING == "refining"
-        assert ReviewState.SUBMITTING == "submitting"
-        assert ReviewState.COMPLETED == "completed"
+        assert ReviewState.START.value == "start"
+        assert ReviewState.COLLECTING_ANSWERS.value == "collecting_answers"
+        assert ReviewState.PREVIEW.value == "preview"
+        assert ReviewState.REFINING.value == "refining"
+        assert ReviewState.SUBMITTING.value == "submitting"
+        assert ReviewState.COMPLETED.value == "completed"
     
     def test_review_session_creation(self):
         """Тест создания сессии ревью."""
